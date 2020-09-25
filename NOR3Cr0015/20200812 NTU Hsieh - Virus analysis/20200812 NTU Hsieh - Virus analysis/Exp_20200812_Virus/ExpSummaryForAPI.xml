@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<Experiment xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Plates />
+  <Populations>
+    <Population Name="Time" />
+    <Population Name="singlets" />
+    <Population Name="VLP" />
+    <Population Name="VLP1" />
+    <Population Name="VLP2" />
+    <Population Name="V1" />
+    <Population Name="V2" />
+    <Population Name="noise" />
+  </Populations>
+  <StatisticsSettings>
+    <TubeHeaderItems>
+      <TubeHeaderItem>EventsCount</TubeHeaderItem>
+      <TubeHeaderItem>RecordTime</TubeHeaderItem>
+      <TubeHeaderItem>Volume</TubeHeaderItem>
+      <TubeHeaderItem>AbortRate</TubeHeaderItem>
+    </TubeHeaderItems>
+    <PopulationStatisticsItems>
+      <PopulationStatisticsItem>Count</PopulationStatisticsItem>
+      <PopulationStatisticsItem>PercentOfParent</PopulationStatisticsItem>
+      <PopulationStatisticsItem>PercentOfAll</PopulationStatisticsItem>
+      <PopulationStatisticsItem>Concentration</PopulationStatisticsItem>
+    </PopulationStatisticsItems>
+    <SignalStatisticsSettings>
+      <SignalStatisticsSetting Id="0">
+        <SignalStatisticsSettingInfos>
+          <SignalStatisticsSettingInfo SignalName="BL525-A" StatisticsType="Mean" />
+          <SignalStatisticsSettingInfo SignalName="VSSC-A" StatisticsType="Mean" />
+          <SignalStatisticsSettingInfo SignalName="SSC-A" StatisticsType="Mean" />
+          <SignalStatisticsSettingInfo SignalName="FSC-A" StatisticsType="Mean" />
+        </SignalStatisticsSettingInfos>
+      </SignalStatisticsSetting>
+    </SignalStatisticsSettings>
+  </StatisticsSettings>
+</Experiment>

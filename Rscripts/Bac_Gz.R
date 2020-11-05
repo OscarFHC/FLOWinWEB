@@ -8,11 +8,11 @@ if (!require(viridis)) {
   library(viridis)
 }else{library(viridis)}
 
-T0 <- read.table(file = "D:/Dropbox/Research/NF_GzGr/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
+T0 <- read.table(file = "https://raw.githubusercontent.com/OscarFHC/NF_GzGr/master/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
                   sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
   filter(Time == "T0")
 
-T12 <- read.table(file = "D:/Dropbox/Research/NF_GzGr/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
+T12 <- read.table(file = "https://raw.githubusercontent.com/OscarFHC/NF_GzGr/master/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
                  sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
   filter(Time == "T12") %>%
   mutate(St = substr(Station, 1, 1),
@@ -40,6 +40,7 @@ T12_p <- T12 %>%
       axis.text.x = element_text(angle = 45), 
       panel.spacing = unit(1, 'lines')
     )
+T12_p
 ggsave(T12_p, file = "D:/Dropbox/Research/NF_GzGr/Results/NOR3CR0015/NFDilu_T12.png",
        dpi = 600, width = 50, height = 30, units = "cm")
 
@@ -72,6 +73,7 @@ T24_p <- T24 %>%
     axis.text.x = element_text(angle = 45), 
     panel.spacing = unit(1, 'lines')
   )
+T24_p
 ggsave(T24_p, file = "D:/Dropbox/Research/NF_GzGr/Results/NOR3CR0015/NFDilu_T24.png",
        dpi = 600, width = 50, height = 30, units = "cm")
 

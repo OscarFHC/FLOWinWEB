@@ -8,24 +8,63 @@ if (!require(viridis)) {
   library(viridis)
 }else{library(viridis)}
 
-T0 <- read.table(file = "https://raw.githubusercontent.com/OscarFHC/NF_GzGr/master/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
+NFT0 <- read.table(file = "https://raw.githubusercontent.com/OscarFHC/NF_GzGr/master/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
                   sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
   filter(Time == "T0")
-
-T12 <- read.table(file = "https://raw.githubusercontent.com/OscarFHC/NF_GzGr/master/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
+#write.table(NFT0, file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", col.names = TRUE, row.names = FALSE, sep = ",")
+BacT0_D2 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_HB.csv", 
+                       sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
+  select(c("Tube.Name.", "Pico.Events..gL.V.", "Bac.Events..gL.V.")) %>%
+  mutate(Time = substr(Tube.Name., 5, 6)) %>%
+  filter(Time == "T0" & substr(Tube.Name., 8, 9) %in% c(seq(1, 6))) %>%
+  mutate(Station = substr(Tube.Name., 1, 3),
+         DF = seq(0, 100, by = 20),
+         Pico = Pico.Events..gL.V.,
+         Bac = Bac.Events..gL.V.)
+BacT0_D3 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_HB.csv", 
+                   sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
+  select(c("Tube.Name.", "Pico.Events..gL.V.", "Bac.Events..gL.V.")) %>%
+  mutate(Time = substr(Tube.Name., 5, 6)) %>%
+  filter(Time == "T0" & substr(Tube.Name., 8, 9) %in% c(seq(6, 11))) %>%
+  mutate(Station = substr(Tube.Name., 1, 3),
+         DF = seq(0, 100, by = 20),
+         Pico = Pico.Events..gL.V.,
+         Bac = Bac.Events..gL.V.)
+  
+NFT12 <- read.table(file = "https://raw.githubusercontent.com/OscarFHC/NF_GzGr/master/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
                  sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
   filter(Time == "T12") %>%
   mutate(St = substr(Station, 1, 1),
          Seq = substr(Station, 3, 3))
+BacT12_D2 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_HB.csv", 
+                       sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
+  select(c("Tube.Name.", "Pico.Events..gL.V.", "Bac.Events..gL.V.")) %>%
+  mutate(Time = substr(Tube.Name., 5, 7),
+         Tube.Name. = substr(Tube.Name., 1, nchar(Tube.Name.)-2)) %>%
+  filter(Time == "T12" & substr(Tube.Name., 9, 10) %in% c(seq(1, 6))) %>%
+  mutate(Station = substr(Tube.Name., 1, 3),
+         DF = rep(seq(0, 100, by = 20), 2),
+         Pico = Pico.Events..gL.V.,
+         Bac = Bac.Events..gL.V.)
+BacT12_D3 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_HB.csv", 
+                        sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
+  select(c("Tube.Name.", "Pico.Events..gL.V.", "Bac.Events..gL.V.")) %>%
+  mutate(Time = substr(Tube.Name., 5, 7),
+         Tube.Name. = substr(Tube.Name., 1, nchar(Tube.Name.)-2)) %>%
+  filter(Time == "T12" & substr(Tube.Name., 9, 10) %in% c(seq(6, 11))) %>%
+  mutate(Station = substr(Tube.Name., 1, 3),
+         DF = rep(seq(0, 100, by = 20), 2),
+         Pico = Pico.Events..gL.V.,
+         Bac = Bac.Events..gL.V.)
 
-for (i in 1: nrow(T12)){
-  id <- which(T0[, "Station"] == T12[i, "Station"] & T0[, "DF"] == T12[i, "DF"])
-  T12[i, "NetG"] <- log(T12[i, "HNF"]/T0[id, "HNF"])/0.5
+##### NF of Dilution set 3
+for (i in 1: nrow(NFT12)){
+  id <- which(NFT0[, "Station"] == NFT12[i, "Station"] & NFT0[, "DF"] == NFT12[i, "DF"])
+  NFT12[i, "NetG"] <- log(NFT12[i, "HNF"]/NFT0[id, "HNF"])/0.5
 }
 
-T12_p <- T12 %>% 
-  ggplot(aes(x = DF, y = NetG)) + 
-    geom_point(aes(color = Station), size = 4) + 
+NFT12_p <- ggplot() + 
+    geom_point(data = NFT12, aes(x = DF, y = NetG, color = Station), size = 4) + 
     scale_color_viridis_d() + 
     labs(x = bquote("Dilution factor (%)"),
          y = bquote(paste("Net growth rate (day " ^ "-1", ")"))) +   
@@ -40,11 +79,88 @@ T12_p <- T12 %>%
       axis.text.x = element_text(angle = 45), 
       panel.spacing = unit(1, 'lines')
     )
-T12_p
-ggsave(T12_p, file = "D:/Dropbox/Research/NF_GzGr/Results/NOR3CR0015/NFDilu_T12.png",
+NFT12_p
+ggsave(NFT12_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/NFDilu_T12.png",
        dpi = 600, width = 50, height = 30, units = "cm")
 
-T24 <- read.table(file = "D:/Dropbox/Research/NF_GzGr/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
+BacT12_D3 <- BacT12_D3 %>%
+  gather(key = microbe, value = density, c(Pico, Bac))
+BacT12_D2_p <- BacT12_D3 %>%
+  ggplot() + 
+  geom_bar(aes(x = DF, y = density, fill = microbe), stat = "identity", position = "dodge") + 
+  #scale_fill_viridis_d() + 
+  labs(x = bquote("Dilution factor (%)"),
+       y = bquote(paste("Density (10 " ^ "-6", "L)"))) +   
+  #facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
+  theme(
+    #panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    axis.title = element_text(size = 32),
+    axis.text = element_text(size = 24),
+    legend.title = element_text(size = 24),
+    legend.text = element_text(size = 24),
+    axis.text.x = element_text(angle = 45), 
+    panel.spacing = unit(1, 'lines')
+  )
+BacT12_D2_p
+
+coeff <- 1000
+St2_1_p <- ggplot() + 
+  geom_bar(data = BacT12_D3, aes(x = DF, y = density/1000, fill = microbe), stat="identity", 
+           position = "dodge", size = .1, alpha = .4) + 
+  geom_point(data = NFT12[which(NFT12$Station == "2-1"),], aes(x = DF, y = NetG, color = Station), size = 4, color = "black") +
+  scale_y_continuous(
+    # Features of the first axis
+    name = bquote(paste("Net growth rate (day " ^ "-1", ")")),
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~.*coeff, name = bquote(paste("Density (10 " ^ "-9", "L)")))
+  ) +
+  theme(
+    #panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    axis.title = element_text(size = 32),
+    axis.text = element_text(size = 24),
+    legend.title = element_text(size = 24),
+    legend.text = element_text(size = 24),
+    axis.text.x = element_text(angle = 45), 
+    panel.spacing = unit(1, 'lines')
+  )
+ggsave(St2_1_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/Dilu_Bac_St2_1.png",
+       dpi = 600, width = 50, height = 30, units = "cm")
+
+
+### Bacteria of dilution set 2
+for (i in 1: nrow(BacT12_D2)){
+  id <- which(BacT0_D2[, "Station"] == BacT12_D2[i, "Station"] & BacT0_D2[, "DF"] == BacT12_D2[i, "DF"])
+  BacT12_D2[i, "NetG"] <- log(BacT12_D2[i, "Bac"]/BacT0_D2[id, "Bac"])/0.5
+}
+
+BacT12_D2_p <- BacT12_D2 %>% 
+  ggplot(aes(x = DF, y = NetG)) + 
+  geom_point(aes(color = Station), size = 4) + 
+  scale_color_viridis_d() + 
+  labs(x = bquote("Dilution factor (%)"),
+       y = bquote(paste("Net growth rate (day " ^ "-1", ")"))) +   
+  #facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
+  theme(
+    #panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    axis.title = element_text(size = 32),
+    axis.text = element_text(size = 24),
+    legend.title = element_text(size = 24),
+    legend.text = element_text(size = 24),
+    axis.text.x = element_text(angle = 45), 
+    panel.spacing = unit(1, 'lines')
+  )
+BacT12_D2_p
+ggsave(BacT12_D2_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/BacDilu_D2.png",
+       dpi = 600, width = 50, height = 30, units = "cm")
+
+
+
+
+
+T24 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
                   sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
   filter(Time == "T24") %>%
   filter(HNF != "NA") %>%
@@ -74,12 +190,12 @@ T24_p <- T24 %>%
     panel.spacing = unit(1, 'lines')
   )
 T24_p
-ggsave(T24_p, file = "D:/Dropbox/Research/NF_GzGr/Results/NOR3CR0015/NFDilu_T24.png",
+ggsave(T24_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/NFDilu_T24.png",
        dpi = 600, width = 50, height = 30, units = "cm")
 
 
 rawdat <- 
-  read.table(file = "D:/Dropbox/Research/NF_GzGr/NOR3Cr003_Bac/NOR3Cr003_Bac.csv", 
+  read.table(file = "D:/Dropbox/Research/FLOWinWEB/NOR3Cr003_Bac/NOR3Cr003_Bac.csv", 
              sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
   filter(!grepl("blank", Tube, fixed  = FALSE)) %>%
   mutate(

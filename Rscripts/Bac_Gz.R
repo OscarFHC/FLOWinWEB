@@ -43,6 +43,8 @@ BacT12_D2 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NO
          Tube.Name. = substr(Tube.Name., 1, nchar(Tube.Name.)-2)) %>%
   filter(Time == "T12" & substr(Tube.Name., 9, 10) %in% c(seq(1, 6))) %>%
   mutate(Station = substr(Tube.Name., 1, 3),
+         St = substr(Tube.Name., 1, 1),
+         Seq = substr(Station, 3, 3),
          DF = rep(seq(0, 100, by = 20), 2),
          Pico = Pico.Events..gL.V.,
          Bac = Bac.Events..gL.V.)
@@ -52,7 +54,10 @@ BacT12_D3 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NO
   mutate(Time = substr(Tube.Name., 5, 7),
          Tube.Name. = substr(Tube.Name., 1, nchar(Tube.Name.)-2)) %>%
   filter(Time == "T12" & substr(Tube.Name., 9, 10) %in% c(seq(6, 11))) %>%
-  mutate(Station = substr(Tube.Name., 1, 3),
+  mutate(Station = substr(Tube.Name., 1, 1),
+         St = substr(Tube.Name., 1, 1),
+         Seq = substr(Station, 3, 3),
+         Seq = substr(Station, 3, 3),
          DF = rep(seq(0, 100, by = 20), 2),
          Pico = Pico.Events..gL.V.,
          Bac = Bac.Events..gL.V.)
@@ -77,38 +82,56 @@ NFT12_p <- ggplot() +
       legend.title = element_text(size = 24),
       legend.text = element_text(size = 24),
       axis.text.x = element_text(angle = 45), 
-      panel.spacing = unit(1, 'lines')
+      panel.spacing = unit(1, 'lines'),
+      strip.background = element_blank(),
+      strip.text = element_blank()
     )
 NFT12_p
 ggsave(NFT12_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/NFDilu_T12.png",
        dpi = 600, width = 50, height = 30, units = "cm")
 
-BacT12_D3 <- BacT12_D3 %>%
-  gather(key = microbe, value = density, c(Pico, Bac))
-BacT12_D2_p <- BacT12_D3 %>%
+BacT0_D3_p <- BacT0_D3 %>%
+  gather(key = microbe, value = density, c(Pico, Bac)) %>%
   ggplot() + 
   geom_bar(aes(x = DF, y = density, fill = microbe), stat = "identity", position = "dodge") + 
-  #scale_fill_viridis_d() + 
+  scale_fill_manual(name = "",
+                    values = c("Bac" = "#743E03", "Pico" = "#32CD32"),
+                    labels = c("Bac" = "Heterotrophic bacteria", "Pico" = "Autotrophic picoplankton")) + 
   labs(x = bquote("Dilution factor (%)"),
        y = bquote(paste("Density (10 " ^ "-6", "L)"))) +   
   #facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
   theme(
-    #panel.background = element_blank(),
+    panel.background = element_blank(),
     axis.line = element_line(colour = "black"),
     axis.title = element_text(size = 32),
     axis.text = element_text(size = 24),
-    legend.title = element_text(size = 24),
+    legend.title = element_blank(),
     legend.text = element_text(size = 24),
+    legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box = NULL,
+    legend.margin = margin(6, 6, 6, 6),
     axis.text.x = element_text(angle = 45), 
     panel.spacing = unit(1, 'lines')
   )
-BacT12_D2_p
+BacT0_D3_p
+ggsave(BacT0_D3_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/T0_Bac_St2_1.png",
+       dpi = 600, width = 50, height = 30, units = "cm")
+summary(aov(Bac ~ DF, data = BacT0_D3))
+summary(aov(Pico ~ DF, data = BacT0_D3))
+summary(aov(Bac + Pico ~ DF, data = BacT0_D3))
 
 coeff <- 1000
-St2_1_p <- ggplot() + 
-  geom_bar(data = BacT12_D3, aes(x = DF, y = density/1000, fill = microbe), stat="identity", 
-           position = "dodge", size = .1, alpha = .4) + 
-  geom_point(data = NFT12[which(NFT12$Station == "2-1"),], aes(x = DF, y = NetG, color = Station), size = 4, color = "black") +
+St2_1_p <- BacT12_D3 %>%
+  gather(key = microbe, value = density, c(Pico, Bac)) %>%
+  ggplot() + 
+  geom_bar(aes(x = DF, y = density/1000, fill = microbe), stat = "identity", 
+           position = "dodge", size = .1, alpha = 0.5) + 
+  scale_fill_manual(name = "",
+                    values = c("Bac" = "#743E03", "Pico" = "#32CD32"),
+                    labels = c("Bac" = "Heterotrophic bacteria", "Pico" = "Autotrophic picoplankton")) + 
+  geom_point(data = NFT12[which(NFT12$Station == "2-1"),], aes(x = DF, y = NetG, color = Station), size = 6, color = "black") +
+  labs(x = bquote("Dilution factor (%)")) + 
   scale_y_continuous(
     # Features of the first axis
     name = bquote(paste("Net growth rate (day " ^ "-1", ")")),
@@ -116,84 +139,81 @@ St2_1_p <- ggplot() +
     sec.axis = sec_axis(~.*coeff, name = bquote(paste("Density (10 " ^ "-9", "L)")))
   ) +
   theme(
-    #panel.background = element_blank(),
+    panel.background = element_blank(),
     axis.line = element_line(colour = "black"),
     axis.title = element_text(size = 32),
     axis.text = element_text(size = 24),
-    legend.title = element_text(size = 24),
+    legend.title = element_blank(),
     legend.text = element_text(size = 24),
+    legend.position = c(1, 1),
+    legend.justification = c("right", "top"),
+    legend.box = NULL,
+    legend.margin = margin(6, 6, 6, 6),
     axis.text.x = element_text(angle = 45), 
     panel.spacing = unit(1, 'lines')
   )
+St2_1_p
 ggsave(St2_1_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/Dilu_Bac_St2_1.png",
        dpi = 600, width = 50, height = 30, units = "cm")
+summary(aov(Bac ~ DF, data = BacT12_D3))
+summary(aov(Pico ~ DF, data = BacT12_D3))
+summary(aov(Bac + Pico ~ DF, data = BacT12_D3))
+
 
 
 ### Bacteria of dilution set 2
 for (i in 1: nrow(BacT12_D2)){
   id <- which(BacT0_D2[, "Station"] == BacT12_D2[i, "Station"] & BacT0_D2[, "DF"] == BacT12_D2[i, "DF"])
-  BacT12_D2[i, "NetG"] <- log(BacT12_D2[i, "Bac"]/BacT0_D2[id, "Bac"])/0.5
+  BacT12_D2[i, "AllPicoNetG"] <- log((BacT12_D2[i, "Bac"] + BacT0_D2[id, "Pico"])/(BacT0_D2[id, "Bac"] + BacT0_D2[id, "Pico"]))/0.5
+  BacT12_D2[i, "HBacNetG"] <- log(BacT12_D2[i, "Bac"]/BacT0_D2[id, "Bac"])/0.5
+  BacT12_D2[i, "APicoNetG"] <- log(BacT12_D2[i, "Pico"]/BacT0_D2[id, "Pico"])/0.5
 }
-
+summary(lm(HBacNetG ~ DF, data = BacT12_D2))
+summary(lm(APicoNetG ~ DF, data = BacT12_D2))
+summary(lm(AllPicoNetG ~ DF, data = BacT12_D2))
+colors <- c("Autotrophic Picoplankton" = "green", "HBacNetG" = "orange", "All picoplankton" = "blue")
 BacT12_D2_p <- BacT12_D2 %>% 
-  ggplot(aes(x = DF, y = NetG)) + 
-  geom_point(aes(color = Station), size = 4) + 
-  scale_color_viridis_d() + 
-  labs(x = bquote("Dilution factor (%)"),
-       y = bquote(paste("Net growth rate (day " ^ "-1", ")"))) +   
-  #facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
-  theme(
-    #panel.background = element_blank(),
-    axis.line = element_line(colour = "black"),
-    axis.title = element_text(size = 32),
-    axis.text = element_text(size = 24),
-    legend.title = element_text(size = 24),
-    legend.text = element_text(size = 24),
-    axis.text.x = element_text(angle = 45), 
-    panel.spacing = unit(1, 'lines')
+  gather(key = microbe, value = NetG, c("HBacNetG", "APicoNetG")) %>%
+  ggplot(aes(x = DF, y = NetG, group = microbe, color = microbe)) +
+    # geom_point(aes(x = DF, y = HBacNetG, color = "Heterotrophic bacteria"), size = 6) + 
+    # geom_point(aes(x = DF, y = APicoNetG, color = "Autotrophic picoplankton"), size = 6) + 
+    geom_point(size = 6) + 
+    geom_smooth(method = "nls", formula = y ~ a * x + b, se = F, method.args = list(start = list(a = 0.1, b = 0.1))) +  
+    # geom_smooth(aes(x = DF, y = HBacNetG, color = "Heterotrophic bacteria"), 
+    #             method = "nls", formula = y ~ a * x + b, se = F, method.args = list(start = list(a = 0.1, b = 0.1))) +
+    # geom_smooth(aes(x = DF, y = APicoNetG, color = "Autotrophic picoplankton"), 
+    #             method = "nls", formula = y ~ a * x + b, se = F, method.args = list(start = list(a = 0.1, b = 0.1))) +
+    scale_color_manual(name = "",
+      values = c( "HBacNetG" = "#743E03", "APicoNetG" = "#32CD32"),
+      labels = c( "HBacNetG" = "Heterotrophic bacteria", "APicoNetG" = "Autotrophic picoplankton")) + 
+    labs(x = bquote("Dilution factor (%)"),
+         y = bquote(paste("Net growth rate (day " ^ "-1", ")"))) +  
+    facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
+    #facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
+    theme(
+      panel.background = element_blank(),
+      plot.margin = margin(20, 6, 6, 6),
+      axis.line = element_line(colour = "black"),
+      axis.title = element_text(size = 32),
+      axis.text = element_text(size = 24),
+      legend.title = element_blank(),
+      legend.text = element_text(size = 24),
+      legend.position = c(.95, .95),
+      legend.justification = c("right", "top"),
+      legend.box = NULL,
+      legend.margin = margin(6, 6, 6, 6),
+      axis.text.x = element_text(angle = 45), 
+      panel.spacing = unit(1, 'lines'),
+      strip.background = element_blank(),
+      strip.text = element_blank()
   )
 BacT12_D2_p
 ggsave(BacT12_D2_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/BacDilu_D2.png",
-       dpi = 600, width = 50, height = 30, units = "cm")
+       dpi = 600, width = 40, height = 24, units = "cm")
 
-
-
-
-
-T24 <- read.table(file = "D:/Dropbox/Research/FLOWinWEB/Data/NOR3Cr0015/NOR3Cr0015_NF.csv", 
-                  sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
-  filter(Time == "T24") %>%
-  filter(HNF != "NA") %>%
-  mutate(St = substr(Station, 1, 1),
-         Seq = substr(Station, 3, 3))
-
-for (i in 1: nrow(T24)){
-  id <- which(T0[, "Station"] == T12[i, "Station"] & T0[, "DF"] == T12[i, "DF"])
-  T24[i, "NetG"] <- log(T24[i, "HNF"]/T0[id, "HNF"])/1
-}
-
-T24_p <- T24 %>% 
-  ggplot(aes(x = DF, y = NetG)) + 
-  geom_point(aes(color = Station), size = 4) + 
-  scale_color_viridis_d() + 
-  labs(x = bquote("Dilution factor (%)"),
-       y = bquote(paste("Net growth rate (day " ^ "-1", ")"))) +   
-  facet_grid(rows = vars(St), cols = vars(Seq), scales = "free") + 
-  theme(
-    #panel.background = element_blank(),
-    axis.line = element_line(colour = "black"),
-    axis.title = element_text(size = 32),
-    axis.text = element_text(size = 24),
-    legend.title = element_text(size = 24),
-    legend.text = element_text(size = 24),
-    axis.text.x = element_text(angle = 45), 
-    panel.spacing = unit(1, 'lines')
-  )
-T24_p
-ggsave(T24_p, file = "D:/Dropbox/Research/FLOWinWEB/Results/NOR3CR0015/NFDilu_T24.png",
-       dpi = 600, width = 50, height = 30, units = "cm")
-
-
+################################################################################
+##### The followings are for NOR3Cr003 #########################################
+################################################################################
 rawdat <- 
   read.table(file = "D:/Dropbox/Research/FLOWinWEB/NOR3Cr003_Bac/NOR3Cr003_Bac.csv", 
              sep = ",", header = TRUE, stringsAsFactors = FALSE, fill = TRUE) %>%
@@ -333,4 +353,6 @@ LBacGz_p <- Ldat[2:6,] %>%
       legend.text = element_text(size = 24)
     )
 LBacGz_p
-
+################################################################################
+##### The followings are for NOR3Cr003 #########################################
+################################################################################
